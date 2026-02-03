@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Books - Premium Digital Library</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 20px 40px -10px rgba(0, 0, 0, 0.05)',
+                        'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
+                        'card-hover': '0 0 0 1px rgba(0,0,0,0.03), 0 20px 30px -10px rgba(0,0,0,0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Animations */
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+
+        /* 3D Book Styles */
+        .book-container {
+            perspective: 1000px;
+        }
+        .book {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        .book-container:hover .book {
+            transform: rotateY(-10deg) scale(1.02);
+        }
+        .book-spine {
+            transform: rotateY(-90deg) translateZ(10px); /* Adjust based on thickness */
+        }
+        
+        /* Smooth Page Transitions */
+        .page-section {
+            display: none;
+            animation: fade-in-up 0.5s ease-out;
+        }
+        .page-section.active {
+            display: block;
+        }
+
+        /* Glassmorphism for Light Theme */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight text-slate-900">Lumina</span>
+            </div>
+
+            <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-500">
+                <button onclick="navigateTo('home')" class="hover:text-blue-600 transition-colors">Store</button>
+                <button class="hover:text-blue-600 transition-colors">Authors</button>
+                <button class="hover:text-blue-600 transition-colors">Bestsellers</button>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="relative cursor-pointer group" onclick="if(cart.length > 0) navigateTo('checkout')">
+                    <i data-lucide="shopping-cart" class="w-6 h-6 text-slate-600 group-hover:text-blue-600 transition-colors"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full opacity-0 transition-opacity duration-300">0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 min-h-screen">
+        
+        <!-- HOME PAGE -->
+        <div id="home-page" class="page-section active">
+            <!-- Hero -->
+            <section class="container mx-auto px-6 py-12 lg:py-20">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-8">
+                        <div class="animate-fade-in">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-wider border border-blue-100">
+                                <i data-lucide="trending-up" class="w-3 h-3"></i> #1 New Release
+                            </span>
+                        </div>
+                        
+                        <h1 class="text-5xl lg:text-7xl font-bold leading-tight text-slate-900 animate-fade-in delay-100">
+                            Design for the <br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Digital Age</span>
+                        </h1>
+                        
+                        <p class="text-lg text-slate-500 max-w-lg leading-relaxed animate-fade-in delay-200">
+                            A comprehensive guide to modern UI/UX principles. Elevate your craft with insights from the industry's top creative minds.
+                        </p>
+
+                        <div class="flex flex-wrap gap-4 animate-fade-in delay-300">
+                            <button onclick="showProduct(0)" class="bg-slate-900 text-white px-8 py-4 rounded-full font-bold shadow-lg hover:bg-blue-600 hover:shadow-blue-200 transition-all transform active:scale-95 flex items-center gap-2">
+                                Start Reading <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                            <button class="px-8 py-4 rounded-full font-bold border border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-900 transition-all bg-white">
+                                View Sample
+                            </button>
+                        </div>
+
+                        <div class="pt-8 border-t border-slate-100 flex items-center gap-4 animate-fade-in delay-300">
+                            <div class="flex -space-x-2">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" class="w-10 h-10 rounded-full border-2 border-white bg-slate-100" alt="Avatar">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=2" class="w-10 h-10 rounded-full border-2 border-white bg-slate-100" alt="Avatar">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=3" class="w-10 h-10 rounded-full border-2 border-white bg-slate-100" alt="Avatar">
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-bold text-slate-900">4.9/5 Rating</p>
+                                <p class="text-slate-500">Based on 1,200+ reviews</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3D Book Mockup -->
+                    <div class="relative lg:h-[600px] flex items-center justify-center animate-fade-in delay-200">
+                        <!-- Abstract BG shapes -->
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-3xl -z-10"></div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-100/50 rounded-full blur-2xl -z-10 translate-x-12 translate-y-12"></div>
+
+                        <div class="book-container cursor-pointer" onclick="showProduct(0)">
+                            <div class="book relative w-[320px] aspect-[2/3] bg-white rounded-r-2xl rounded-l-md shadow-2xl">
+                                <!-- Cover Art -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-r-2xl rounded-l-md p-8 flex flex-col justify-between text-white z-20">
+                                    <div class="opacity-70 font-mono tracking-widest text-xs">LUMINA PRESS</div>
+                                    <div>
+                                        <h2 class="text-4xl font-bold mb-2">Future<br>of Design</h2>
+                                        <p class="text-blue-100 text-lg">Elena V. Rostova</p>
+                                    </div>
+                                    <div class="flex justify-between items-end">
+                                        <div class="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+                                            <i data-lucide="book" class="w-6 h-6 text-white"></i>
+                                        </div>
+                                        <span class="font-bold text-2xl">₹1,299</span>
+                                    </div>
+                                </div>
+                                <!-- Pages (Thickness) -->
+                                <div class="absolute right-0 top-1 bottom-1 w-4 bg-white z-10 rounded-r-sm translate-x-[2px] shadow-sm"></div>
+                                <div class="absolute right-0 top-2 bottom-2 w-3 bg-slate-100 z-0 translate-x-[6px] rounded-r-sm shadow-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Book Grid -->
+            <section class="bg-white py-20 border-t border-slate-100">
+                <div class="container mx-auto px-6">
+                    <div class="flex justify-between items-end mb-12">
+                        <div>
+                            <h2 class="text-3xl font-bold text-slate-900 mb-2">Trending Now</h2>
+                            <p class="text-slate-500">Curated reads for the modern professional.</p>
+                        </div>
+                        <button class="text-blue-600 font-bold flex items-center gap-1 hover:gap-2 transition-all">
+                            View All <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div id="books-grid" class="grid md:grid-cols-3 gap-8">
+                        <!-- Content injected via JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- PRODUCT DETAILS PAGE -->
+        <div id="product-page" class="page-section">
+            <div class="container mx-auto px-6 py-8">
+                <button onclick="navigateTo('home')" class="flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-8 font-medium transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Store
+                </button>
+
+                <div class="bg-white rounded-3xl shadow-card overflow-hidden">
+                    <div class="grid lg:grid-cols-2">
+                        <!-- Product Image Area -->
+                        <div id="product-img-container" class="bg-slate-50 p-12 lg:p-20 flex items-center justify-center">
+                            <!-- Image injected via JS -->
+                        </div>
+
+                        <!-- Product Info Area -->
+                        <div class="p-8 lg:p-16 flex flex-col justify-center">
+                            <div class="flex items-center gap-2 text-yellow-500 mb-4 font-bold text-sm">
+                                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                                <span id="product-rating">4.8</span>
+                                <span class="text-slate-400 font-medium ml-1">(128 Reviews)</span>
+                            </div>
+
+                            <h1 id="product-title" class="text-4xl lg:text-5xl font-bold text-slate-900 mb-2">Title</h1>
+                            <p id="product-author" class="text-xl text-slate-500 mb-6">Author</p>
+
+                            <div class="flex items-end gap-4 mb-8">
+                                <span id="product-price" class="text-4xl font-bold text-slate-900">₹0</span>
+                                <span id="product-original-price" class="text-xl text-slate-400 line-through mb-1">₹0</span>
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold uppercase mb-2">Save 40%</span>
+                            </div>
+
+                            <p id="product-desc" class="text-slate-600 leading-relaxed mb-8 border-l-4 border-blue-200 pl-4">
+                                Description
+                            </p>
+
+                            <div class="space-y-4 mb-10">
+                                <div class="flex items-center gap-3 text-slate-700">
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                    <span>Instant PDF & ePub Download</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-slate-700">
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                    <span>Lifetime Updates included</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-slate-700">
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                    <span>30-Day Money Back Guarantee</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <button onclick="addToCartAndCheckout()" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl transition-all active:scale-95 flex justify-center items-center gap-2">
+                                    <i data-lucide="credit-card" class="w-5 h-5"></i> Buy Now
+                                </button>
+                                <button onclick="addToCartCurrent()" class="flex-1 bg-white border border-slate-200 text-slate-900 py-4 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 flex justify-center items-center gap-2">
+                                    <i data-lucide="shopping-cart" class="w-5 h-5"></i> Add to Cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHECKOUT PAGE -->
+        <div id="checkout-page" class="page-section">
+            <div class="container mx-auto px-6 py-8">
+                <button onclick="navigateTo('home')" class="flex items-center gap-2 text-slate-500 hover:text-slate-900 mb-8 font-medium transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Continue Shopping
+                </button>
+
+                <div class="grid lg:grid-cols-3 gap-12">
+                    <!-- Form -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-3xl shadow-card p-8 lg:p-10">
+                            <h2 class="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded bg-slate-900 text-white flex items-center justify-center text-sm">1</div>
+                                Payment Details
+                            </h2>
+
+                            <form onsubmit="handleCheckout(event)" class="space-y-6">
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                                    <input type="email" required placeholder="you@example.com" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">Card Information</label>
+                                    <div class="relative">
+                                        <i data-lucide="credit-card" class="absolute left-4 top-3.5 text-slate-400 w-5 h-5"></i>
+                                        <input type="text" required placeholder="0000 0000 0000 0000" class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-12 pr-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-mono">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">Expiry Date</label>
+                                        <input type="text" required placeholder="MM/YY" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-center">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">CVC</label>
+                                        <input type="text" required placeholder="123" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-center">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-2">Name on Card</label>
+                                    <input type="text" required placeholder="John Doe" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                                </div>
+
+                                <button type="submit" id="pay-btn" class="w-full bg-blue-600 text-white text-lg font-bold py-4 rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all transform active:scale-95 mt-4">
+                                    Pay Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div>
+                        <div class="bg-white rounded-3xl shadow-card p-8 sticky top-24">
+                            <h3 class="text-lg font-bold text-slate-900 mb-6">Order Summary</h3>
+                            
+                            <div id="cart-items" class="space-y-4 mb-8">
+                                <!-- Cart items injected here -->
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4 space-y-3">
+                                <div class="flex justify-between text-slate-500">
+                                    <span>Subtotal</span>
+                                    <span id="summary-subtotal">₹0</span>
+                                </div>
+                                <div class="flex justify-between text-slate-500">
+                                    <span>Tax (18%)</span>
+                                    <span id="summary-tax">₹0</span>
+                                </div>
+                                <div class="flex justify-between text-slate-900 font-bold text-xl pt-2">
+                                    <span>Total</span>
+                                    <span id="summary-total">₹0</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 bg-blue-50 rounded-xl p-4 flex gap-3 items-start">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
+                                <p class="text-sm text-blue-800 font-medium">Secure SSL Encrypted payment. Your data is safe.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 pt-16 pb-8 mt-auto">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                <div class="flex items-center gap-2">
+                    <div class="bg-slate-900 text-white p-1.5 rounded">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">Lumina</span>
+                </div>
+                <div class="flex gap-6 text-slate-500 text-sm font-medium">
+                    <a href="#" class="hover:text-blue-600">Privacy Policy</a>
+                    <a href="#" class="hover:text-blue-600">Terms of Service</a>
+                    <a href="#" class="hover:text-blue-600">Contact Support</a>
+                </div>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                        <i data-lucide="twitter" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                        <i data-lucide="instagram" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="text-center text-slate-400 text-sm">
+                &copy; 2024 Lumina Books. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform duration-300">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="check" class="w-10 h-10 text-green-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Payment Successful!</h2>
+            <p class="text-slate-500 mb-8">Your e-book has been sent to your email address.</p>
+            <button onclick="closeModal()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">
+                Back to Store
+            </button>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script>
+        // Data
+        const books = [
+            {
+                id: 0,
+                title: "The Future of Design",
+                author: "Elena V. Rostova",
+                price: 1299,
+                originalPrice: 2499,
+                rating: 4.8,
+                reviews: 128,
+                description: "A comprehensive guide to modern UI/UX principles in the age of AI. Learn how to craft digital experiences that resonate.",
+                color: "from-blue-600 to-indigo-700",
+                imgSeed: "design"
+            },
+            {
+                id: 1,
+                title: "Minimalist Habits",
+                author: "James K. Arlo",
+                price: 899,
+                originalPrice: 1499,
+                rating: 4.6,
+                reviews: 85,
+                description: "Declutter your digital and physical life. A practical approach to finding focus in a distracted world.",
+                color: "from-emerald-500 to-teal-600",
+                imgSeed: "habit"
+            },
+            {
+                id: 2,
+                title: "Code & Capital",
+                author: "Sarah Jenkings",
+                price: 1599,
+                originalPrice: 2999,
+                rating: 4.9,
+                reviews: 342,
+                description: "Mastering the business side of software development. Turn your coding skills into a profitable venture.",
+                color: "from-violet-600 to-purple-600",
+                imgSeed: "money"
+            },
+            {
+                id: 3,
+                title: "Whisk: Culinary Magic",
+                author: "Chef Master",
+                price: 499,
+                originalPrice: 999,
+                rating: 4.7,
+                reviews: 56,
+                description: "Master the art of baking with this essential guide. From pastries to breads, discover the secrets of the kitchen.",
+                color: "from-orange-400 to-red-500",
+                imgSeed: "whisk",
+                image: "https://i.ibb.co/v4PyZxv7/Whisk-27ad29bf0d6c331805944be7094b0da9dr.jpg",
+                pdfLink: "https://drive.google.com/file/d/190bVobrEEL9rRtGkP39KOOyxATQxapNG/view?usp=sharing"
+            }
+        ];
+
+        let cart = [];
+        let currentProduct = null;
+        let lastPurchasedLink = null;
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBooksGrid();
+            lucide.createIcons();
+        });
+
+        // Navigation
+        function navigateTo(pageId) {
+            document.querySelectorAll('.page-section').forEach(el => {
+                el.classList.remove('active');
+                // quick fade out effect could go here
+            });
+            document.getElementById(`${pageId}-page`).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if (pageId === 'checkout') renderCheckout();
+        }
+
+        function showProduct(id) {
+            currentProduct = books.find(b => b.id === id);
+            
+            // Populate Details
+            document.getElementById('product-title').innerText = currentProduct.title;
+            document.getElementById('product-author').innerText = currentProduct.author;
+            document.getElementById('product-price').innerText = `₹${currentProduct.price}`;
+            document.getElementById('product-original-price').innerText = `₹${currentProduct.originalPrice}`;
+            document.getElementById('product-rating').innerText = currentProduct.rating;
+            document.getElementById('product-desc').innerText = currentProduct.description;
+
+            // Generate Image Container
+            const imgContainer = document.getElementById('product-img-container');
+            
+            if (currentProduct.image) {
+                imgContainer.innerHTML = `
+                    <div class="w-[280px] aspect-[2/3] rounded-lg shadow-2xl relative flex flex-col justify-end overflow-hidden transform transition-transform hover:scale-105 duration-500 group">
+                        <img src="${currentProduct.image}" alt="${currentProduct.title}" class="absolute inset-0 w-full h-full object-cover z-0">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
+                        <div class="relative z-20 p-6 text-white">
+                            <div class="text-xs opacity-75 tracking-widest uppercase mb-1">Lumina Press</div>
+                            <h2 class="text-2xl font-bold leading-tight">${currentProduct.title}</h2>
+                        </div>
+                    </div>
+                `;
+            } else {
+                imgContainer.innerHTML = `
+                    <div class="w-[280px] aspect-[2/3] rounded-lg bg-gradient-to-br ${currentProduct.color} shadow-2xl relative flex flex-col p-6 text-white justify-between transform transition-transform hover:scale-105 duration-500">
+                        <div class="text-xs opacity-75 tracking-widest uppercase">Lumina Press</div>
+                        <div>
+                            <h2 class="text-2xl font-bold leading-tight mb-1">${currentProduct.title}</h2>
+                            <p class="opacity-90 text-sm">${currentProduct.author}</p>
+                        </div>
+                         <div class="flex justify-end">
+                            <i data-lucide="book-open" class="w-8 h-8 opacity-50"></i>
+                        </div>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+            navigateTo('product');
+        }
+
+        // Render Grid
+        function renderBooksGrid() {
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = books.map(book => {
+                let coverHtml;
+                if (book.image) {
+                    coverHtml = `
+                        <div class="w-[160px] aspect-[2/3] rounded shadow-lg mx-auto transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-105 relative z-10 overflow-hidden">
+                            <img src="${book.image}" alt="${book.title}" class="w-full h-full object-cover">
+                        </div>
+                    `;
+                } else {
+                    coverHtml = `
+                        <div class="w-[160px] aspect-[2/3] bg-gradient-to-br ${book.color} rounded shadow-lg mx-auto transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-105 flex flex-col p-4 text-white justify-between relative z-10">
+                            <span class="text-[10px] uppercase opacity-70">E-Book</span>
+                            <h3 class="font-bold leading-tight text-sm">${book.title}</h3>
+                        </div>
+                    `;
+                }
+
+                return `
+                <div class="group cursor-pointer" onclick="showProduct(${book.id})">
+                    <div class="bg-slate-50 rounded-2xl p-8 mb-6 relative overflow-hidden transition-all duration-300 group-hover:bg-blue-50">
+                        ${coverHtml}
+                    </div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">${book.title}</h3>
+                            <p class="text-slate-500 text-sm">${book.author}</p>
+                        </div>
+                        <span class="font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded">₹${book.price}</span>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // Cart Logic
+        function addToCartCurrent() {
+            if (!cart.find(item => item.id === currentProduct.id)) {
+                cart.push(currentProduct);
+                updateCartCount();
+                alert("Added to cart!");
+            } else {
+                alert("Item already in cart");
+            }
+        }
+
+        function addToCartAndCheckout() {
+            if (!cart.find(item => item.id === currentProduct.id)) {
+                cart.push(currentProduct);
+                updateCartCount();
+            }
+            navigateTo('checkout');
+        }
+
+        function updateCartCount() {
+            const el = document.getElementById('cart-count');
+            el.innerText = cart.length;
+            el.classList.remove('opacity-0');
+        }
+
+        // Checkout Logic
+        function renderCheckout() {
+            const container = document.getElementById('cart-items');
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            const tax = Math.round(total * 0.18);
+            const finalTotal = total + tax;
+
+            if(cart.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 italic">Your cart is empty.</p>';
+            } else {
+                container.innerHTML = cart.map(item => `
+                    <div class="flex gap-4 items-center">
+                        <div class="w-10 h-14 rounded ${item.image ? 'overflow-hidden' : 'bg-gradient-to-br ' + item.color} shrink-0">
+                             ${item.image ? `<img src="${item.image}" class="w-full h-full object-cover">` : ''}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-slate-900 truncate">${item.title}</h4>
+                            <p class="text-xs text-slate-500">${item.author}</p>
+                        </div>
+                        <div class="font-bold text-slate-900">₹${item.price}</div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('summary-subtotal').innerText = `₹${total}`;
+            document.getElementById('summary-tax').innerText = `₹${tax}`;
+            document.getElementById('summary-total').innerText = `₹${finalTotal}`;
+            document.getElementById('pay-btn').innerText = `Pay ₹${finalTotal}`;
+        }
+
+        function handleCheckout(e) {
+            e.preventDefault();
+            const btn = document.getElementById('pay-btn');
+            const originalText = btn.innerText;
+            
+            // Check for PDF link
+            const pdfItem = cart.find(item => item.pdfLink);
+            lastPurchasedLink = pdfItem ? pdfItem.pdfLink : null;
+
+            btn.innerHTML = 'Processing...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            setTimeout(() => {
+                // Show Success Modal
+                const modal = document.getElementById('success-modal');
+                const modalText = modal.querySelector('p');
+                
+                if (lastPurchasedLink) {
+                    modalText.innerHTML = `Payment successful! <br><br> <a href="${lastPurchasedLink}" target="_blank" class="text-blue-600 font-bold underline">Download your PDF here</a>`;
+                } else {
+                    modalText.innerText = "Your e-book has been sent to your email address.";
+                }
+
+                modal.classList.remove('hidden');
+                // Trigger reflow for transition
+                void modal.offsetWidth; 
+                modal.classList.remove('opacity-0');
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+                
+                // Reset form
+                btn.innerText = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                cart = [];
+                updateCartCount();
+                document.getElementById('cart-count').classList.add('opacity-0');
+            }, 1500);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('success-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                navigateTo('home');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
